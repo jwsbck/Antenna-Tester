@@ -15,14 +15,16 @@ static const uint32_t GPSBaud = 9600;
 
 //GPIO16 OLED RESET
 
-
+#define SCK	5
+#define MISO	19
+#define MOSI	27
 #define SS      18
-#define RST     14
+#define RST     23
 #define DI0     26
 
-#define STARTPIN 25
-#define BUZZERPIN 13
-#define ZEROPIN 2
+#define STARTPIN 38
+//#define BUZZERPIN 13
+//#define ZEROPIN 2
 
 
 #define spreadingFactor 9
@@ -43,8 +45,7 @@ int power = 7;
 float average;
 float zero = 0;
 
-// SSD1306  display(0x3c, 21, 22); // TTGOV2
-SSD1306  display(0x3c, 4, 15); // TTGo V1
+SSD1306 display(0x3c, 21, 22); // TTGOV2
 
 // The serial connection to the GPS device
 HardwareSerial GPSserial(1);
@@ -203,9 +204,9 @@ double calculateCourse(double senderLat, double senderLng, double receiverLat, d
       senderLng);
   return courseTo;
 }
-void initLoRa() {
 
-  SPI.begin(5, 19, 27, 18);
+void initLoRa() {
+  SPI.begin(SCK, MISO, MOSI, SS);
   LoRa.setPins(SS, RST, DI0);
   if (!LoRa.begin(FREQUENCY)) {
     Serial.println("Starting LoRa failed!");
@@ -225,9 +226,20 @@ void initLoRa() {
 
 void buzz(int duration, int number) {
   for (int i = 0; i < number; i++) {
-    digitalWrite(BUZZERPIN, 1);
     delay(duration);
-    digitalWrite(BUZZERPIN, 0);
+
+void do_zero() {
+      zero = average;
+      Serial.print("Zero ");
+      Serial.println(zero);
+      display.clear();
+      display.setTextAlignment(TEXT_ALIGN_CENTER);
+      display.setFont(ArialMT_Plain_24);
+      display.drawString(64, 0, "Zero");
+      display.drawString(64, 35, "Button");
+      display.display();
+      //if (digitalRead(ZEROPIN) == 0);
+}
   }
 }
 
@@ -239,9 +251,9 @@ void setup()
   digitalWrite(16, HIGH);
   initDisplay();
   pinMode(STARTPIN, INPUT_PULLUP);
-  pinMode(ZEROPIN, INPUT_PULLUP);
-  pinMode(BUZZERPIN, OUTPUT);
-  digitalWrite(BUZZERPIN, 0);
+  //pinMode(ZEROPIN, INPUT_PULLUP);
+  //pinMode(BUZZERPIN, OUTPUT);
+  //digitalWrite(BUZZERPIN, 0);
   getPosition();
   initLoRa();
   display.clear();
@@ -309,20 +321,12 @@ void loop()
   display.drawString(64, 35, "Button");
   display.display();
 
-  while ((digitalRead(STARTPIN) == 1) &&  (digitalRead(ZEROPIN) == 1)) {
+  //while ((digitalRead(STARTPIN) == 1) &&  (digitalRead(ZEROPIN) == 1)) {
+  while ((digitalRead(STARTPIN) == 1)) {
     // Serial.print(digitalRead(ZEROPIN));
     delay(50);
-    if (digitalRead(ZEROPIN) == 0) {
-      zero = average;
-      Serial.print("Zero ");
-      Serial.println(zero);
-      display.clear();
-      display.setTextAlignment(TEXT_ALIGN_CENTER);
-      display.setFont(ArialMT_Plain_24);
-      display.drawString(64, 0, "Zero");
-      display.drawString(64, 35, "Button");
-      display.display();
-      if (digitalRead(ZEROPIN) == 0);
-    }
+    //if (digitalRead(ZEROPIN) == 0) {
+	    //do_zero();
+    //}
   }
 }

@@ -20,9 +20,12 @@ static const uint32_t GPSBaud = 9600;
 
 */
 
-#define SS      D0
-#define RST     D0
-#define DI0     D8
+#define SCK	5
+#define MISO	19
+#define MOSI	27
+#define SS      18
+#define RST     23
+#define DI0     26
 
 
 #define spreadingFactor 9
@@ -34,12 +37,12 @@ static const uint32_t GPSBaud = 9600;
 TinyGPSPlus gps;
 
 // The serial connection to the GPS device
-HardwareSerial receiverSerial(1);
-HardwareSerial GPSserial(2);
+HardwareSerial GPSserial(1);
+//HardwareSerial receiverSerial(1);
 
 #define FREQUENCY 868.9E6
 
-#define LEDPIN 5
+//#define LEDPIN 5
 
 
 double retFrequency;
@@ -118,7 +121,7 @@ void receivingMessage () {
   StaticJsonBuffer<500> jsonBuffer;
   char json[500];
   Serial.println("HIGH");
-  digitalWrite(LEDPIN, LOW);
+  //digitalWrite(LEDPIN, LOW);
 
   // Receive Message
 
@@ -153,7 +156,7 @@ void receivingMessage () {
     recMessage.printTo(Serial);
     //    Serial.println();
     Serial.println("LOW");
-    digitalWrite(LEDPIN, HIGH);
+    //digitalWrite(LEDPIN, HIGH);
     delay(200);
 
     // Send packet back
@@ -169,14 +172,14 @@ void receivingMessage () {
 }
 
 void initLoRa() {
-  SPI.begin();
-  LoRa.setPins(D0, D0, D8);
+  SPI.begin(SCK, MISO, MOSI, SS);
+  LoRa.setPins(SS, RST, DI0);
   if (!LoRa.begin(FREQUENCY)) {
     Serial.println("Starting LoRa failed!");
     while (1) {
-      digitalWrite(LEDPIN, 1);
+      //digitalWrite(LEDPIN, 1);
       delay(200);
-      digitalWrite(LEDPIN, 0);
+      //digitalWrite(LEDPIN, 0);
       delay(200);
     }
   }
@@ -194,10 +197,10 @@ void initLoRa() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LEDPIN, OUTPUT);
-  digitalWrite(LEDPIN, 1);
+  //pinMode(LEDPIN, OUTPUT);
+  //digitalWrite(LEDPIN, 1);
   delay(1000);
-  digitalWrite(LEDPIN, 0);
+  //digitalWrite(LEDPIN, 0);
   GPSserial.begin(GPSBaud);
   initLoRa();
 }
